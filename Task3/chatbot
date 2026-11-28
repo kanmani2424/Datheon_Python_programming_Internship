@@ -1,0 +1,84 @@
+
+import json
+import re
+from pathlib import Path
+
+# Load FAQ data from JSON file
+JSON_FILE = Path(__file__).parent / "sample_faq.json"
+
+with open(JSON_FILE, "r", encoding="utf-8") as file:
+    data = json.load(file)
+
+greetings = data["greetings"]
+faqs = data["faqs"]
+
+
+def chatbot():
+    print("=" * 50)
+    print("Welcome to Internship Support Chatbot!")
+    print("Ask about hours, project submission or certificate.")
+    print("Type bye, exit or quit to stop.")
+    print("=" * 50)
+
+    while True:
+        user_input = input("\nYou: ").strip().lower()
+
+        # Exit handling
+        if re.search(r"\b(bye|exit|quit)\b", user_input):
+            print("Bot: Thank you! Have a nice day.")
+            break
+
+        # Empty input handling
+        if not user_input:
+            print("Bot: Please enter a message.")
+            continue
+
+        # Greeting recognition
+        greeting_found = False
+
+        for greeting in greetings:
+            pattern = r"\b" + re.escape(greeting) + r"\b"
+
+            if re.search(pattern, user_input):
+                print("Bot: Hello! How can I help you?")
+                greeting_found = True
+                break
+
+        if greeting_found:
+            continue
+
+        # FAQ intent recognition
+        matched = False
+
+        for faq in faqs:
+            question = faq["question"].lower()
+
+            # Extract important words from FAQ question
+            keywords = re.findall(r"\b[a-z]{4,}\b", question)
+
+            # Check keyword matches
+            match_count = 0
+
+            for keyword in keywords:
+                if re.search(
+                    r"\b" + re.escape(keyword) + r"\b",
+                    user_input
+                ):
+                    match_count += 1
+
+            # If enough keywords match, return answer
+            if match_count >= 2:
+                print("Bot:", faq["answer"])
+                matched = True
+                break
+
+        # Fallback response
+        if not matched:
+            print(
+                "Bot: Sorry, I didn't understand your question."
+                " Please ask about our FAQs."
+            )
+
+
+if __name__ == "__main__":
+    chatbot()
